@@ -1,0 +1,10 @@
+{{ define "product" }}
+
+<div class="product-card" id="{{ .Id }}">
+     <img src="{{ .Img }}" alt= "{{ .Name }}" class="product-image">
+     <h2 class="product-title">{{ .Name }}</h2>
+     <p class="product-description">{{ .Description }}</p>
+     <button class="try-button" href="">Попробывать</button>
+</div>
+
+{{ end }}
