@@ -4,7 +4,7 @@
      <img src="{{ .Img }}" alt= "{{ .Name }}" class="product-image">
      <h2 class="product-title">{{ .Name }}</h2>
      <p class="product-description">{{ .Description }}</p>
-     <button class="try-button" href="">Попробывать</button>
+     <a href="/service/{{ .Id }}" id="try-button">Try it!</a>
 </div>
 
 {{ end }}

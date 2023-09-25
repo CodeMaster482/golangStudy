@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="{{ .styleFile }}"> 
+    </head>
+    <body>
+        {{ template "navbar" }}
+
+        <h1>
+            {{ .title }}
+        </h1>
+
+        <div class ="main-container">
+            <div class="product-card" id="{{ .services.Id }}">
+                <img src="{{ .services.Img }}" alt= "{{ .services.Name }}" class="product-image">
+                <h2 class="product-title">{{ .services.Name }}</h2>
+                <p class="product-description">{{ .services.Description }}</p>
+                <a href="/service" id="try-button">home</a>
+           </div>
+        </div>
+
+        <a href="/static/image.jpg">Gopher</a>
+    </body>
+</html>

@@ -1,52 +1,32 @@
 package api
 
 import (
+	"go-web-bmstu/internal/api/handlers"
 	"log"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-type Services struct {
-	Id          int
-	Name        string
-	Description string
-	Img         string
-}
-
 func StartServer() {
 	log.Println("Server start up")
 
-	runner := gin.Default()
+	log.Println("Started on: http://localhost:8080")
 
-	services := []Services{
-		{Id: 0, Name: "credit", Description: "Lorem ipsum dolor sit amet, consectetur adipisicing elit", Img: "/image/black.png"},
-		{Id: 1, Name: "deposite", Description: "Lorem ipsum dolor sit amet, consectetur adipisicing elit", Img: "/image/white.png"},
-		{Id: 2, Name: "scam", Description: "Lorem ipsum dolor sit amet, consectetur adipisicing elit", Img: "/image/credit.png"},
-	}
+	router := gin.Default()
 
-	runner.GET("/ping", func(context *gin.Context) {
-		context.JSON(http.StatusOK, gin.H{
-			"message": "pong",
-		})
-	})
+	router.LoadHTMLGlob("../../templates/*")
 
-	runner.LoadHTMLGlob("../../templates/*")
+	router.Static("/static", "../../resources")
 
-	runner.GET("/home", func(context *gin.Context) {
-		// context.HTML(http.StatusOK, "productCard.html", gin.H{
-		//	"services": services,
-		// })
+	router.GET("/ping", handlers.PingPongHandler)
 
-		context.HTML(http.StatusOK, "index.tmpl", gin.H{
-			"title":    "RIP 💀 project",
-			"services": services,
-		})
-	})
+	router.GET("/service", handlers.ServicesHandler)
 
-	runner.Static("/image", "../../resources")
+	router.GET("/service/:id", handlers.ProductPageHandler)
 
-	runner.Run()
+	router.GET("/home", handlers.HomePageHandler)
+
+	router.Run()
 
 	log.Println("Server down")
 }

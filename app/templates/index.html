@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="{{ .styleFile }}"> 
+    </head>
+    <body>
+        {{ template "navbar" }}
+
+        <h1>
+            {{ .title }}
+        </h1>
+
+        <div class ="main-container">
+            {{ range .services }}
+                {{ template "product" . }}
+            {{ end }}
+        </div>
+
+        <h2>{{ .noResults }}</h2>
+
+        <a href="/static/image.jpg">Gopher</a>
+    </body>
+</html>
