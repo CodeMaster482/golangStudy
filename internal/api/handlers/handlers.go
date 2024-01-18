@@ -23,18 +23,9 @@ var services = []Services{
 	{Id: 4, Name: "exchange", Description: "Lorem ipsum dolor sit amet, consectetur adipisicing elit", Img: "/static/change.png"},
 }
 
-func PingPongHandler(context *gin.Context) {
-	context.JSON(http.StatusOK, gin.H{
-		"User-Agent": context.Request.UserAgent(),
-		"URL":        context.Request.URL,
-		"Accepted":   context.Accepted,
-		"message":    "pong",
-	})
-}
-
 func HomePageHandler(context *gin.Context) {
 	context.HTML(http.StatusOK, "index.html", gin.H{
-		"title":     "RIP 💀 project",
+		"title":     "RIP project: ATM",
 		"services":  services,
 		"styleFile": "static/styles.css",
 	})
