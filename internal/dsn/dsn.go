@@ -7,19 +7,18 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func FromEnv() (string, error) {
-	if err := godotenv.Load(); err != nil {
-		return "", err
+func FromEnv() string {
+	_ = godotenv.Load()
+
+	host := os.Getenv("DB_HOST")
+	if host == "" {
+		return ""
 	}
 
-	host, existHost := os.LookupEnv("DB_HOST")
-	port, existPort := os.LookupEnv("DB_PORT")
-	user, existUser := os.LookupEnv("DB_USER")
-	pass, existPass := os.LookupEnv("DB_PASS")
-	dbname, existName := os.LookupEnv("DB_NAME")
-	if !existHost || !existPort || !existUser || !existPass || !existName {
-		return "", fmt.Errorf("existHost or existPort or existUser or existPass or existName is Empty")
-	}
+	port := os.Getenv("DB_PORT")
+	user := os.Getenv("DB_USER")
+	pass := os.Getenv("DB_PASS")
+	dbname := os.Getenv("DB_NAME")
 
-	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, pass, dbname), nil
+	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, pass, dbname)
 }
