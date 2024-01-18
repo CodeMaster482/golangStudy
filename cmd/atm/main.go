@@ -7,12 +7,16 @@ import (
 	"main/internal/handler"
 	"main/internal/repository"
 
+	Minio "main/internal/minio"
+
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
 
 func main() {
 	logger := logrus.New()
+	minioClient := Minio.NewMinioClient(logger)
+
 	router := gin.Default()
 
 	conf, err := config.NewConfig(logger)
@@ -30,7 +34,7 @@ func main() {
 		logger.Fatalf("Error repo creating: %v", err)
 	}
 
-	h := handler.NewHandler(repo, logger)
+	h := handler.NewHandler(repo, minioClient, logger)
 
 	app := api.NewApiServer(conf, router, logger, h)
 

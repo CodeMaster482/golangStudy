@@ -1,13 +1,14 @@
 package handler
 
 import (
-	"fmt"
+	"errors"
 	"main/internal/ds"
+	"main/internal/utils"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
 )
 
 type Services struct {
@@ -25,55 +26,205 @@ type Services struct {
 	{Id: 4, Name: "exchange", Description: "Lorem ipsum dolor sit amet, consectetur adipisicing elit", Img: "/static/change.png"},
 }*/
 
-func (h *Handler) BanknotesList(context *gin.Context) {
-	banknotesList, err := h.Repository.BanknoteList()
+func (h *Handler) BanknotesList(ctx *gin.Context) {
+	queryText, _ := ctx.GetQuery("banknote")
+	banknotes, err := h.Repository.BanknotesList(queryText)
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to retrire to banknotes",
-		})
+		h.errorHandler(ctx, http.StatusNoContent, err)
+		return
 	}
 
-	query := context.DefaultQuery("banknote", "")
-	if query != "" {
-		result := []ds.Banknote{}
-
-		for _, data := range *banknotesList {
-			if strings.HasPrefix(fmt.Sprint(data.Nominal), query) {
-				result = append(result, data)
-			}
-		}
-
-		context.HTML(http.StatusOK, "index.html", gin.H{
-			"services": result,
-			"banknote": query,
-		})
-	} else {
-		context.HTML(http.StatusOK, "index.html", gin.H{
-			"services": banknotesList,
-			"banknote": query,
-		})
+	draftID, err := h.Repository.GetOprationDraftID(creatorID) // creatorID(UserID)
+	if err != nil {
+		h.errorHandler(ctx, http.StatusInternalServerError, err)
+		return
 	}
+
+	banknotesList := ds.BanknoteList{
+		DraftID:   draftID,
+		Banknotes: banknotes,
+	}
+
+	h.successHandler(ctx, "banknotes", banknotesList)
 }
 
-func (h *Handler) BanknoteById(context *gin.Context) {
-	idGet := context.Param("id")
-	id, _ := strconv.Atoi(idGet)
+func (h *Handler) BanknoteById(ctx *gin.Context) {
+	//queryText, _ := ctx.GetQuery("banknote")
 
-	banknote, err := h.Repository.BanknoteById(id)
+	id, err := strconv.ParseUint(ctx.Param("id")[:], 10, 64)
 	if err != nil {
-		context.String(http.StatusNotFound, "404 ---- Not Found")
+		h.errorHandler(ctx, http.StatusBadRequest, err)
 	}
 
-	context.HTML(http.StatusOK, "productPage.html", gin.H{
-		"services": banknote,
+	banknote, err := h.Repository.GetBanknoteById(uint(id))
+	if err != nil {
+		h.errorHandler(ctx, http.StatusInternalServerError, err)
+		return
+	}
+
+	h.successHandler(ctx, "company", banknote)
+}
+
+func (h *Handler) DeleteBanknote(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id")[:], 10, 64)
+	if err != nil {
+		h.errorHandler(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	if id == 0 {
+		h.errorHandler(ctx, http.StatusBadRequest, errors.New("param `id` not found"))
+		return
+	}
+
+	url := h.Repository.DeleteBanknoteImage(uint(id))
+	if err != nil {
+		h.errorHandler(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	h.DeleteImage(ctx, utils.ExtractObjectNameFromUrl(url))
+	if err != nil {
+		h.errorHandler(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	err = h.Repository.DeleteBanknote(uint(id))
+	if gorm.IsRecordNotFoundError(err) {
+		h.errorHandler(ctx, http.StatusBadRequest, err)
+	} else if err != nil {
+		h.errorHandler(ctx, http.StatusInternalServerError, err)
+	}
+
+	ctx.JSON(http.StatusOK, "company deleted successfully")
+}
+
+func (h *Handler) AddBanknote(ctx *gin.Context) {
+	var newService ds.Banknote
+
+	if newService.ID != 0 {
+		h.errorHandler(ctx, http.StatusBadRequest, errors.New("param `id` not found"))
+		return
+	}
+
+	nominal, err := strconv.ParseFloat(ctx.Request.FormValue("nominal"), 64)
+	if err != nil {
+		h.errorHandler(ctx, http.StatusBadRequest, errors.New("неверное значение номинала"))
+	}
+	if nominal == 0 {
+		h.errorHandler(ctx, http.StatusBadRequest, errors.New("имя компании не может быть пустой"))
+		return
+	}
+
+	newService.Nominal = nominal
+
+	newService.Description = ctx.Request.FormValue("description")
+	if newService.Description == "" {
+		h.errorHandler(ctx, http.StatusBadRequest, errors.New("описание не может быть пустой"))
+		return
+	}
+
+	file, header, err := ctx.Request.FormFile("image")
+	if err != nil && err != http.ErrMissingFile {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "ошибка при загрузке изображения"})
+		return
+	}
+
+	if file != nil {
+		// Изображение предоставлено, обрабатываем его
+		newService.ImageURL, err = h.SaveImage(ctx.Request.Context(), file, header)
+		if err != nil {
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "ошибка при сохранении изображения"})
+			return
+		}
+	} else {
+		// Изображение не предоставлено, устанавливаем пустую строку или другое значение по умолчанию
+		newService.ImageURL = ""
+	}
+
+	createID, err := h.Repository.AddBanknote(&newService)
+	if err != nil {
+		h.errorHandler(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	h.successAddHandler(ctx, "banknote_id", createID)
+}
+
+func (h *Handler) BanknoteUpdate(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id")[:], 10, 64)
+	if err != nil {
+		h.errorHandler(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	file, header, err := ctx.Request.FormFile("image")
+	// if err != nil {
+	// 	h.errorHandler(ctx, http.StatusBadRequest, err)
+	// 	return
+	// }
+
+	// var updatedBanknote ds.Banknote
+	// if err := ctx.BindJSON(&updatedBanknote); err != nil {
+	// 	h.errorHandler(ctx, http.StatusBadRequest, err)
+	// 	return
+	// }
+
+	var updatedService ds.Banknote
+
+	updatedService.ID = uint(id)
+
+	if updatedService.ID == 0 {
+		h.errorHandler(ctx, http.StatusBadRequest, errors.New("param `id` not found"))
+	}
+
+	nominal, err := strconv.ParseFloat(ctx.Request.FormValue("name"), 64)
+	if err != nil {
+		h.errorHandler(ctx, http.StatusBadRequest, errors.New("неверное значение номинала"))
+	}
+
+	updatedService.Nominal = nominal
+	updatedService.Description = ctx.Request.FormValue("description")
+
+	if header != nil && header.Size != 0 {
+		if updatedService.ImageURL, err = h.SaveImage(ctx.Request.Context(), file, header); err != nil {
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": err})
+			return
+		}
+
+		url := h.Repository.DeleteBanknoteImage(updatedService.ID)
+
+		if err = h.DeleteImage(ctx, utils.ExtractObjectNameFromUrl(url)); err != nil {
+			h.errorHandler(ctx, http.StatusBadRequest, err)
+			return
+		}
+	}
+
+	if _, err := h.Repository.UpdateBanknote(&updatedService); err != nil {
+		h.errorHandler(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	h.successHandler(ctx, "updated_company", gin.H{
+		"id":           updatedService.ID,
+		"company_name": updatedService.Nominal,
+		"description":  updatedService.Description,
+		"image_url":    updatedService.ImageURL,
+		"status":       updatedService.Status,
 	})
 }
 
-func (h *Handler) DeleteBanknote(context *gin.Context) {
-	banknoteId := context.PostForm("banknote_id")
-	err := h.Repository.DeleteBanknote(banknoteId)
+func (h *Handler) AddBanknoteToRequest(ctx *gin.Context) {
+	id, _ := strconv.ParseUint(ctx.Param("id"), 10, 64)
+
+	draftID, err := h.Repository.AddBanknoteToDraft(uint(id), creatorID)
+
 	if err != nil {
-		context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Can't delete this banknote"})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": err})
+		return
 	}
-	context.Redirect(http.StatusFound, "/banknotes")
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"draftID": draftID,
+	})
 }

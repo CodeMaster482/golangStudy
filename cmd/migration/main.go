@@ -31,19 +31,19 @@ func main() {
 	}
 
 	users := []ds.User{
-		{Login: "user1", Password: "password1", IsModerator: true},
-		{Login: "user2", Password: "password2", IsModerator: false},
-		{Login: "user3", Password: "password3", IsModerator: false},
+		{Login: "user1", Password: "password1", IsModerator: true, Balance: 9999},
+		{Login: "user2", Password: "password2", IsModerator: false, Balance: 1000},
+		{Login: "user3", Password: "password3", IsModerator: false, Balance: 90},
 	}
 
 	money := []ds.Banknote{
-		{Nominal: 10, ImageURL: "/static/resources/ten.jpg"},
-		{Nominal: 50, ImageURL: "/static/resources/fifty.jpg"},
-		{Nominal: 100, ImageURL: "/static/resources/handred.jpg"},
-		{Nominal: 500, ImageURL: "/static/resources/fivehandred.jpg"},
-		{Nominal: 1000, ImageURL: "/static/resources/thouthend.jpg"},
-		{Nominal: 2000, ImageURL: "/static/resources/twothouthend.jpg"},
-		{Nominal: 5000, ImageURL: "/static/resources/fivethouthend.jpg"},
+		{Nominal: 10, ImageURL: "/static/resources/ten.jpg", Status: "действует"},
+		{Nominal: 50, ImageURL: "/static/resources/fifty.jpg", Status: "действует"},
+		{Nominal: 100, ImageURL: "/static/resources/handred.jpg", Status: "действует"},
+		{Nominal: 500, ImageURL: "/static/resources/fivehandred.jpg", Status: "действует"},
+		{Nominal: 1000, ImageURL: "/static/resources/thouthend.jpg", Status: "действует"},
+		{Nominal: 2000, ImageURL: "/static/resources/twothouthend.jpg", Status: "действует"},
+		{Nominal: 5000, ImageURL: "/static/resources/fivethouthend.jpg", Status: "действует"},
 	}
 	db.Create(&users)
 	db.Create(&money)

@@ -9,6 +9,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const (
+	creatorID   = 1
+	moderatorID = 1
+)
+
 type Handler struct {
 	Logger     *logrus.Logger
 	Repository *repository.Repository
@@ -27,24 +32,24 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	api := router.Group("/api")
 
 	// service
-	api.GET("/banknotes", h.BanknotesList)
-	api.GET("/banknotes/:id", h.BanknoteById)
-	api.POST("/banknotes/:id", h.BanknoteUpdate)
-	api.DELETE("/banknotes/:id", h.DeleteBanknote)
+	api.GET("/banknotes", h.BanknotesList)         // услуги
+	api.GET("/banknotes/:id", h.BanknoteById)      // конкретная
+	api.POST("/banknotes/:id", h.BanknoteUpdate)   // изменить
+	api.DELETE("/banknotes/:id", h.DeleteBanknote) // удалить
 
-	api.POST("/banknotes/request/:id", h.AddBanknoteToRequest)
+	api.POST("/banknotes/request/:id", h.AddBanknoteToRequest) // добавить учлуги к заявке
 
 	// application
 
-	api.GET("/operations", h.OperationList)
-	api.GET("/operations/:id", h.OperationById)
-	api.PUT("/oprations", h.OprationUpdate)
-	api.PUT("/opration/form/:id", h.FormOprationApplication)
-	api.PUT("/oprations/reject/:id", h.RejectOperationApplication)
-	api.PUT("/opration/finish/:id", h.FinishOperationApplication)
+	api.GET("/operations", h.OperationList) // все заявки
+	api.GET("/operations/:id", h.GetOperationById)
+	api.PUT("/operations", h.UpdateOperation)
+	api.PUT("/operation/form/:id", h.FormOperationRequest)
+	api.PUT("/operations/reject/:id", h.RejectOperationRequest)
+	api.PUT("/operation/finish/:id", h.FinishOperationRequest)
 
-	api.DELETE("/banknoteOperation", h.DeleteBanknoteFromApplication)
-	api.PUT("/banknoteOperation", h.UpdateOperationBnaknote)
+	api.DELETE("/banknoteOperation", h.DeleteBanknoteFromRequest)
+	api.PUT("/banknoteOperation", h.UpdateOperationBanknote)
 
 	// router.GET("/banknotes", h.BanknotesList)
 	// router.GET("/banknotes/:id", h.BanknoteById)
@@ -54,7 +59,7 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 }
 
 func registerStatic(router *gin.Engine) {
-	router.LoadHTMLGlob("./static/templates/*")
+	//router.LoadHTMLGlob("./static/templates/*")
 	router.Static("/static", "./static")
 	router.Static("/css", "./static")
 	router.Static("/img", "./static")
