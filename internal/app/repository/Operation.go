@@ -3,8 +3,8 @@ package repository
 import (
 	"errors"
 	"fmt"
-	"main/internal/ds"
-	"main/internal/utils"
+	"main/internal/app/ds"
+	"main/internal/app/utils"
 	"time"
 
 	"gorm.io/gorm"

@@ -16,9 +16,8 @@ x-minio-common: &minio-common
     interval: 30s
     timeout: 20s
     retries: 3
+
 services:
-
-
   minio1:
     <<: *minio-common
     hostname: minio1
@@ -60,9 +59,37 @@ services:
       - minio2
       - minio3
       - minio4
+  
+  db:
+      container_name: db
+      image: postgres:14
+      restart: always
+      env_file:
+        - .env
+      environment:
+        POSTGRES_DB: ${DB_NAME}
+        POSTGRES_USER: ${DB_USER}
+        POSTGRES_PASSWORD: ${DB_PASS}
+        #PGDATA: "/var/lib/postgresql/data/pgdata"
+      ports:
+        - ${DB_PORT}:5432
+      #volumes:
+        # - ./cmd/internal/db/postgresql/schema/:/docker-entrypoint-initdb.d
+        #- postgresdb-data:/var/lib/postgresql/data
+  
+  redis:
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning --requirepass password
+    volumes:
+      - redis-data:/data
 
 volumes:
   postgresdb-data:
+    driver: local
+  redis-data:
     driver: local
   data1-1:
   data1-2:

@@ -3,8 +3,8 @@ package app
 import (
 	"fmt"
 
-	"main/internal/config"
-	"main/internal/handler"
+	"main/internal/app/config"
+	"main/internal/app/handler"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"

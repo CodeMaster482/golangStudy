@@ -2,8 +2,8 @@ package handler
 
 import (
 	"errors"
-	"main/internal/ds"
-	"main/internal/utils"
+	"main/internal/app/ds"
+	"main/internal/app/utils"
 	"net/http"
 	"strconv"
 
@@ -178,7 +178,7 @@ func (h *Handler) BanknoteUpdate(ctx *gin.Context) {
 		h.errorHandler(ctx, http.StatusBadRequest, errors.New("param `id` not found"))
 	}
 
-	nominal, err := strconv.ParseFloat(ctx.Request.FormValue("name"), 64)
+	nominal, err := strconv.ParseFloat(ctx.Request.FormValue("nominal"), 64)
 	if err != nil {
 		h.errorHandler(ctx, http.StatusBadRequest, errors.New("неверное значение номинала"))
 	}

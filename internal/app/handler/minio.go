@@ -3,7 +3,7 @@ package handler
 import (
 	"context"
 	"fmt"
-	mClient "main/internal/minio"
+	mClient "main/internal/app/minio"
 	"mime/multipart"
 	"path/filepath"
 

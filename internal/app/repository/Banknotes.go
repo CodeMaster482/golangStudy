@@ -2,8 +2,8 @@ package repository
 
 import (
 	"errors"
-	"main/internal/ds"
-	"main/internal/utils"
+	"main/internal/app/ds"
+	"main/internal/app/utils"
 	"strconv"
 	"strings"
 	"time"

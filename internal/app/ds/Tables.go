@@ -48,6 +48,11 @@ type BanknoteList struct {
 	Banknotes *[]Banknote `json:"banknotes_list"`
 }
 
+type AddToBanknoteID struct {
+	BanknoteID uint `json:"banknote_id"`
+	Quantity   int  `json:"quantity"`
+}
+
 // OperationBanknote represents the 'operation_banknote' table
 type OperationBanknote struct {
 	ID          uint      `json:"opration_banknote_id" gorm:"primaryKey"`

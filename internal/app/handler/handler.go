@@ -1,7 +1,10 @@
 package handler
 
 import (
-	"main/internal/repository"
+	"main/internal/app/config"
+	"main/internal/app/pkg/hash"
+	"main/internal/app/redis"
+	"main/internal/app/repository"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -18,6 +21,10 @@ type Handler struct {
 	Logger     *logrus.Logger
 	Repository *repository.Repository
 	MinioCli   *minio.Client
+	Config     *config.Config
+	Redis      *redis.Client
+	Hasher     hash.PasswordHasher
+	//TokenManager auth.TokenManager
 }
 
 func NewHandler(r *repository.Repository, cli *minio.Client, l *logrus.Logger) *Handler {
@@ -34,13 +41,12 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	// service
 	api.GET("/banknotes", h.BanknotesList)         // услуги
 	api.GET("/banknotes/:id", h.BanknoteById)      // конкретная
-	api.POST("/banknotes/:id", h.BanknoteUpdate)   // изменить
+	api.PUT("/banknotes/:id", h.BanknoteUpdate)    // изменить
 	api.DELETE("/banknotes/:id", h.DeleteBanknote) // удалить
 
 	api.POST("/banknotes/request/:id", h.AddBanknoteToRequest) // добавить учлуги к заявке
 
 	// application
-
 	api.GET("/operations", h.OperationList) // все заявки
 	api.GET("/operations/:id", h.GetOperationById)
 	api.PUT("/operations", h.UpdateOperation)

@@ -2,12 +2,12 @@ package main
 
 import (
 	"main/internal/api"
-	"main/internal/config"
-	"main/internal/dsn"
-	"main/internal/handler"
-	"main/internal/repository"
+	"main/internal/app/config"
+	"main/internal/app/dsn"
+	"main/internal/app/handler"
+	"main/internal/app/repository"
 
-	Minio "main/internal/minio"
+	Minio "main/internal/app/minio"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"

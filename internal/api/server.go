@@ -3,9 +3,10 @@ package api
 import (
 	"fmt"
 
+	//"main/internal/app/api/handlers"
 	"main/internal/api/handlers"
-	"main/internal/config"
-	"main/internal/handler"
+	"main/internal/app/config"
+	"main/internal/app/handler"
 
 	"log"
 

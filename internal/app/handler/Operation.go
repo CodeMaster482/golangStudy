@@ -2,7 +2,7 @@ package handler
 
 import (
 	"errors"
-	"main/internal/ds"
+	"main/internal/app/ds"
 	"net/http"
 	"strconv"
 
