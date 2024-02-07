@@ -61,7 +61,6 @@ func (h *Handler) WithAuthCheck(assignedRoles ...ds.Role) func(ctx *gin.Context)
 			fmt.Errorf("role %d is not assigned in %d", myClaims.Role, assignedRoles),
 		)
 		h.Logger.Errorf("role %d is not assigned in %d", myClaims.Role, assignedRoles)
-		return
 	}
 }
 
@@ -110,6 +109,5 @@ func (h *Handler) WithoutJWTError(assignedRoles ...ds.Role) func(ctx *gin.Contex
 			fmt.Errorf("role %d is not assigned in %d", myClaims.Role, assignedRoles),
 		)
 		h.Logger.Errorf("role %d is not assigned in %d", myClaims.Role, assignedRoles)
-		return
 	}
 }

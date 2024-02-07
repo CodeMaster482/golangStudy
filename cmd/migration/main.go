@@ -31,9 +31,9 @@ func main() {
 	}
 
 	users := []ds.User{
-		{Login: "user1", Password: "password1", IsModerator: true, Balance: 9999},
-		{Login: "user2", Password: "password2", IsModerator: false, Balance: 1000},
-		{Login: "user3", Password: "password3", IsModerator: false, Balance: 90},
+		{Login: "user1", Name: "name1", Password: "password1", Role: ds.Admin, Balance: 9999},
+		{Login: "user2", Name: "name2", Password: "password2", Role: ds.Buyer, Balance: 1000},
+		{Login: "user3", Name: "name3", Password: "password3", Role: ds.Moderator, Balance: 90},
 	}
 
 	money := []ds.Banknote{

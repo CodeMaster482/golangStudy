@@ -94,15 +94,19 @@ func (r *Repository) DeleteBanknote(id uint) error {
 	return nil
 }
 
-func (r *Repository) UpdateBanknote(updatedBanknote *ds.Banknote) (*ds.Banknote, error) {
+func (r *Repository) UpdateBanknote(updatedBanknote *ds.Banknote) error {
 	var oldBanknote ds.Banknote
 
 	if result := r.db.First(&oldBanknote, updatedBanknote.ID); result.Error != nil {
-		return updatedBanknote, result.Error
+		return result.Error
 	}
 
 	if updatedBanknote.Nominal != 0 {
 		oldBanknote.Nominal = updatedBanknote.Nominal
+	}
+
+	if updatedBanknote.Currency != "" {
+		oldBanknote.Currency = updatedBanknote.Currency
 	}
 
 	if updatedBanknote.ImageURL != "" {
@@ -119,7 +123,7 @@ func (r *Repository) UpdateBanknote(updatedBanknote *ds.Banknote) (*ds.Banknote,
 
 	*updatedBanknote = oldBanknote
 	result := r.db.Save(updatedBanknote)
-	return updatedBanknote, result.Error
+	return result.Error
 }
 
 func (r *Repository) DeleteBanknoteImage(banknoteId uint) string {
@@ -129,7 +133,7 @@ func (r *Repository) DeleteBanknoteImage(banknoteId uint) string {
 	return banknote.ImageURL
 }
 
-func (r *Repository) AddBanknoteToDraft(dataID uint, creatorID uint) (uint, error) {
+func (r *Repository) AddBanknoteToDraft(dataID uint, creatorID uint, quantity int) (uint, error) {
 	// получаем услугу
 	data, err := r.GetBanknoteById(dataID)
 	if err != nil {
@@ -159,9 +163,9 @@ func (r *Repository) AddBanknoteToDraft(dataID uint, creatorID uint) (uint, erro
 
 	// добавляем запись в мм
 	requestToData := ds.OperationBanknote{
-		OperationID: dataID,
-		BanknoteID:  draftReq.ID,
-		Quantity:    0,
+		BanknoteID:  dataID,
+		OperationID: draftReq.ID,
+		Quantity:    quantity,
 	}
 
 	err = r.db.Create(&requestToData).Error

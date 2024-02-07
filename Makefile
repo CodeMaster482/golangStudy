@@ -10,7 +10,7 @@ BINARY_NAME=server
 API_MAIN=./cmd/atm/main.go
 MIGRATION=./cmd/migration/main.go
 
-all: build up migrate run 
+all: build up migrate run
 
 build:
 	$(GOBUILD) -o $(BINARY_NAME) $(API_MAIN)
@@ -27,7 +27,7 @@ clean:
 	sudo docker system prune -f
 
 up:
-	docker-compose up --remove-orphans
+	docker-compose up --remove-orphans &
 
 down:
 	docker-compose down

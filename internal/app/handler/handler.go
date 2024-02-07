@@ -2,14 +2,19 @@ package handler
 
 import (
 	"main/internal/app/config"
+	"main/internal/app/ds"
 	"main/internal/app/pkg/hash"
 	"main/internal/app/redis"
 	"main/internal/app/repository"
 	"net/http"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/minio/minio-go/v7"
 	"github.com/sirupsen/logrus"
+
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 const (
@@ -36,32 +41,45 @@ func NewHandler(r *repository.Repository, cli *minio.Client, l *logrus.Logger) *
 }
 
 func (h *Handler) RegisterHandler(router *gin.Engine) {
+	router.GET("swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 	api := router.Group("/api")
+	// услуги
+	api.GET("/banknotes", h.WithoutJWTError(ds.Buyer, ds.Moderator, ds.Admin), h.BanknotesList) // ?
+	api.GET("/banknotes/:id", h.GetBanknotesById)                                               // ?
+	api.POST("/banknotes", h.WithAuthCheck(ds.Moderator, ds.Admin), h.AddBanknote)
+	api.PUT("/banknotes", h.WithAuthCheck(ds.Moderator, ds.Admin), h.BanknoteUpdate)
+	api.PUT("/banknotes/upload-image", h.WithAuthCheck(ds.Moderator, ds.Admin), h.AddImage)
+	api.DELETE("/banknotes", h.WithAuthCheck(ds.Moderator, ds.Admin), h.DeleteBanknote)
+	api.POST("/banknotes/request", h.WithAuthCheck(ds.Buyer, ds.Moderator, ds.Admin), h.AddBanknoteToRequest)
+	api.Use(cors.Default()).DELETE("/banknotes/delete/:id", h.DeleteBanknote)
 
-	// service
-	api.GET("/banknotes", h.BanknotesList)         // услуги
-	api.GET("/banknotes/:id", h.BanknoteById)      // конкретная
-	api.PUT("/banknotes/:id", h.BanknoteUpdate)    // изменить
-	api.DELETE("/banknotes/:id", h.DeleteBanknote) // удалить
+	// заявки
+	api.GET("/operations", h.WithAuthCheck(ds.Buyer, ds.Moderator, ds.Admin), h.OperationList)
+	api.GET("/operations/:id", h.WithAuthCheck(ds.Buyer, ds.Moderator, ds.Admin), h.GetOperationById)
+	// api.POST("/operations/", h.CreateDraft)
+	api.PUT("/operations", h.WithAuthCheck(ds.Buyer, ds.Moderator, ds.Admin), h.UpdateOperation)
 
-	api.POST("/banknotes/request/:id", h.AddBanknoteToRequest) // добавить учлуги к заявке
+	// статусы
+	api.PUT("/operations/form", h.WithAuthCheck(ds.Buyer, ds.Moderator, ds.Admin), h.FormOperationRequest)
+	api.PUT("/operations/updateStatus", h.WithAuthCheck(ds.Moderator, ds.Admin), h.UpdateStatusOperationRequest)
+	//api.PUT("/operations/finish/:id", h.WithAuthCheck([]ds.Role{ds.Admin}), h.FinishTenderRequest)
 
-	// application
-	api.GET("/operations", h.OperationList) // все заявки
-	api.GET("/operations/:id", h.GetOperationById)
-	api.PUT("/operations", h.UpdateOperation)
-	api.PUT("/operation/form/:id", h.FormOperationRequest)
-	api.PUT("/operations/reject/:id", h.RejectOperationRequest)
-	api.PUT("/operation/finish/:id", h.FinishOperationRequest)
+	api.DELETE("/operations", h.WithAuthCheck(ds.Buyer, ds.Moderator, ds.Admin), h.DeleteOperation)
 
-	api.DELETE("/banknoteOperation", h.DeleteBanknoteFromRequest)
-	api.PUT("/banknoteOperation", h.UpdateOperationBanknote)
-
-	// router.GET("/banknotes", h.BanknotesList)
-	// router.GET("/banknotes/:id", h.BanknoteById)
-	// router.POST("api/deleteBanknote", h.DeleteBanknote)
-
+	// m-m
+	api.DELETE("/operation-request-company", h.WithoutJWTError(ds.Buyer, ds.Moderator, ds.Admin), h.DeleteBanknoteFromRequest)
+	api.PUT("/operation-request-company", h.WithoutJWTError(ds.Buyer, ds.Moderator, ds.Admin), h.UpdateOperationBanknote)
 	registerStatic(router)
+
+	// auth && reg
+	api.POST("/user/signIn", h.Login)
+	api.POST("/user/signUp", h.Register)
+	api.POST("/user/logout", h.Logout)
+
+	// асинхронный сервис
+	api.PUT("/tenders/user-form-start", h.WithoutJWTError(ds.Buyer, ds.Moderator, ds.Admin), h.UserRequest) // обращение к асинхронному сервису
+	api.PUT("/tenders/user-form-finish", h.FinishUserRequest)
 }
 
 func registerStatic(router *gin.Engine) {

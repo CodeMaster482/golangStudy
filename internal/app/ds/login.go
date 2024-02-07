@@ -5,7 +5,7 @@ import "time"
 type Role int
 
 const (
-	Buyer Role = iota
+	Buyer Role = iota + 1
 	Moderator
 	Admin
 )

@@ -10,6 +10,45 @@ import (
 	"gorm.io/gorm"
 )
 
+func (r *Repository) FormOperationRequestByIDAsynce(id uint, creatorID uint) (uint, error) {
+	var req ds.Operation
+	res := r.db.
+		Where("id = ?", id).
+		Where("user_id = ?", creatorID).
+		//Where("status = ?", utils.Draft).
+		Take(&req)
+
+	if res.Error != nil {
+		return 0, res.Error
+	}
+	if res.RowsAffected == 0 {
+		return 0, errors.New("нет такой заявки")
+	}
+
+	req.StatusCheck = "В обработке"
+	req.Status = "сформирован"
+	req.FormationAt = time.Now()
+
+	if err := r.db.Save(&req).Error; err != nil {
+		return 0, err
+	}
+
+	return req.ID, nil
+}
+
+func (r *Repository) SaveRequest(monitoringRequest ds.RequestAsyncService) error {
+	var request ds.Operation
+	err := r.db.First(&request, "id = ?", monitoringRequest.RequestId)
+	if err.Error != nil {
+		r.logger.Error("error while getting monitoring request")
+		return err.Error
+	}
+	//request.CompletionAt = time.Now()
+	request.StatusCheck = monitoringRequest.Status
+	res := r.db.Save(&request)
+	return res.Error
+}
+
 func (r *Repository) GetOprationDraftID(creatorID uint) (uint, error) {
 	var draftReq ds.Operation
 
@@ -67,23 +106,124 @@ func (r *Repository) GetOperationWithDataByID(requestID uint) (ds.Operation, []d
 	return request, dataService, nil
 }
 
-func (r *Repository) OperationList(status, start, end string) (*[]ds.Operation, error) {
-	var operation []ds.Operation
-	query := r.db.Where("status != ? AND status != ?", "удалён", "черновик")
-
-	if status != "" {
-		query = query.Where("status = ?", status)
+func (r *Repository) OperationByUserID(userID string) (*[]ds.OperationResponse, error) {
+	var operations []ds.Operation
+	var operationResponses = []ds.OperationResponse{}
+	result := r.db.Preload("User").
+		//Preload("TenderCompanies.Tender.User").
+		Preload("Moderator").
+		Where("user_id = ? AND status != 'удален' AND status != 'черновик'", userID).
+		Find(&operations)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, nil
+		} else {
+			return nil, result.Error
+		}
 	}
 
-	if start != "" {
-		query = query.Where("creation_date >= ?", start)
+	for _, op := range operations {
+		operationResponse := ds.OperationResponse{
+			ID:                op.ID,
+			Name:              op.Name,
+			UserName:          op.User.Name,
+			UserLogin:         op.User.Login,
+			ModeratorName:     op.Moderator.Name,
+			Status:            op.Status,
+			StatusCheck:       op.StatusCheck,
+			ModeratorLogin:    op.Moderator.Login,
+			CreatedAt:         op.CreatedAt,
+			FormationAt:       op.FormationAt,
+			CompletionAt:      op.CompletionAt,
+			OperationBanknote: op.OperationBanknote,
+			//UserRole:       tender.User.Role,
+			//ModeratorRole:  tender.Moderator.Role,
+		}
+		operationResponses = append(operationResponses, operationResponse)
 	}
 
-	if end != "" {
-		query = query.Where("creation_date <= ?", end)
+	return &operationResponses, result.Error
+}
+
+func (r *Repository) OperationList(statusId string, start, end time.Time) (*[]ds.OperationResponse, error) {
+	var operations []ds.Operation
+	operationResponses := []ds.OperationResponse{}
+
+	if statusId == "" {
+		result := r.db.
+			Preload("User").
+			Preload("Moderator").
+			Where("status != 'удален' AND status != 'черновик' AND creation_at BETWEEN ? AND ?", start, end).
+			Order("id DESC").
+			Find(&operations)
+
+		if result.Error != nil {
+			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+				return nil, nil
+			} else {
+				return nil, result.Error
+			}
+		}
+
+		for _, op := range operations {
+			operationResponse := ds.OperationResponse{
+				ID:                op.ID,
+				Name:              op.Name,
+				UserName:          op.User.Name,
+				UserLogin:         op.User.Login,
+				ModeratorName:     op.Moderator.Name,
+				ModeratorLogin:    op.Moderator.Login,
+				Status:            op.Status,
+				StatusCheck:       op.StatusCheck,
+				CreatedAt:         op.CreatedAt,
+				FormationAt:       op.FormationAt,
+				CompletionAt:      op.CompletionAt,
+				OperationBanknote: op.OperationBanknote,
+
+				//UserRole:       op.User.Role,
+				//ModeratorRole:  op.Moderator.Role,
+			}
+			operationResponses = append(operationResponses, operationResponse)
+		}
+
+		return &operationResponses, result.Error
 	}
-	result := query.Find(&operation)
-	return &operation, result.Error
+
+	result := r.db.
+		Preload("User").
+		Where("status = ? AND status != 'черновик' AND creation_at BETWEEN ? AND ?", statusId, start, end).
+		Find(&operations)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, nil
+		} else {
+			return nil, result.Error
+		}
+	}
+
+	for _, op := range operations {
+		operationResponse := ds.OperationResponse{
+			ID:                op.ID,
+			Name:              op.Name,
+			UserName:          op.User.Name,
+			UserLogin:         op.User.Login,
+			Status:            op.Status,
+			ModeratorName:     op.Moderator.Name,
+			ModeratorLogin:    op.Moderator.Login,
+			StatusCheck:       op.StatusCheck,
+			CreatedAt:         op.CreatedAt,
+			FormationAt:       op.FormationAt,
+			CompletionAt:      op.CompletionAt,
+			OperationBanknote: op.OperationBanknote,
+
+			//UserRole:       op.User.Role,
+			//ModeratorRole:  op.Moderator.Role,
+		}
+		operationResponses = append(operationResponses, operationResponse)
+	}
+
+	return &operationResponses, result.Error
 }
 
 func (r *Repository) UpdateOperation(updatedOperation *ds.Operation) error {
@@ -92,7 +232,7 @@ func (r *Repository) UpdateOperation(updatedOperation *ds.Operation) error {
 		return result.Error
 	}
 
-	oldOperation.IsIncome = updatedOperation.IsIncome
+	oldOperation.Name = updatedOperation.Name
 
 	if updatedOperation.CreatedAt.String() != utils.EmptyDate {
 		oldOperation.CreatedAt = updatedOperation.CreatedAt
@@ -129,7 +269,7 @@ func (r *Repository) FormOperationRequestByID(requestID uint, creatorID uint) er
 
 	req.Status = "сформирован"
 	req.FormationAt = time.Now()
-	req.ModeratorID = 1
+	*req.ModeratorID = 1
 	if err := r.db.Save(&req).Error; err != nil {
 		return err
 	}
@@ -159,7 +299,7 @@ func (r *Repository) finishRejectHelper(status string, requestID, moderatorID ui
 		return errors.New("нет такой заявки")
 	}
 
-	req.ModeratorID = moderatorID
+	req.ModeratorID = &moderatorID
 	req.Status = status
 
 	req.CompletionAt = time.Now()
@@ -225,6 +365,38 @@ func (r *Repository) UpdateOperationBanknote(OperationID uint, BanknoteID uint, 
 	updateBanknote.Quantity = quantity
 
 	if err := r.db.Save(&updateBanknote).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *Repository) FinishRejectHelper(status string, requestID, moderatorID uint) error {
+	//userInfo, err := GetUserInfo(r, moderatorID)
+	//if err != nil {
+	//	return err
+	//}
+
+	var req ds.Operation
+	res := r.db.
+		Where("id = ?", requestID).
+		Where("status = ?", "сформирован").
+		Take(&req)
+
+	if res.Error != nil {
+		return res.Error
+	}
+	if res.RowsAffected == 0 {
+		return errors.New("нет такой заявки")
+	}
+
+	req.ModeratorID = &moderatorID
+	//req.ModeratorLogin = userInfo.Login
+	req.Status = status
+
+	req.CompletionAt = time.Now()
+
+	if err := r.db.Save(&req).Error; err != nil {
 		return err
 	}
 
