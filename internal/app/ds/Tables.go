@@ -17,7 +17,7 @@ type User struct {
 	Password         string  `json:"password" gorm:"not null;type:TEXT;check:LENGTH(password) <= 255"`
 	Name             string  `json:"name" gorm:"not null;type:TEXT;check:LENGTH(name) <= 255"`
 	Balance          float64 `json:"balance" gorm:"type:NUMERIC;default:0"`
-	Role             Role    `json:"is_moderator" gorm:"type:BOOLEAN"`
+	Role             Role    `json:"role" sql:"type:string;`
 	RegistrationDate time.Time
 }
 

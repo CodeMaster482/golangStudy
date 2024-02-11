@@ -34,11 +34,11 @@ type Services struct {
 // @Accept       json
 // @Produce      json
 // @Param        name query   string  false  "Query string to filter banknotes by nominal"
-// @Success      200          {object}  ds.BanknotesList
+// @Success      200          {object}  ds.BanknoteList
 // @Failure      500          {object}  error
 // @Router       /api/banknotes [get]
 func (h *Handler) BanknotesList(ctx *gin.Context) {
-	queryText, _ := ctx.GetQuery("banknote")
+	queryText, _ := ctx.GetQuery("banknote_name")
 	banknotes, err := h.Repository.BanknotesList(queryText)
 	if err != nil {
 		h.errorHandler(ctx, http.StatusNoContent, err)
@@ -115,11 +115,11 @@ func (h *Handler) DeleteBanknote(ctx *gin.Context) {
 		ID string `json:"id"`
 	}
 
-	//id, err := strconv.ParseUint(ctx.Param("id")[:], 10, 64)
-	//if err != nil {
-	//	h.errorHandler(ctx, http.StatusBadRequest, err)
-	//	return
-	//}
+	// id, err := strconv.ParseUint(ctx.Param("id")[:], 10, 64)
+	// if err != nil {
+	// 	h.errorHandler(ctx, http.StatusBadRequest, err)
+	// 	return
+	// }
 
 	if err := ctx.BindJSON(&request); err != nil {
 		h.errorHandler(ctx, http.StatusBadRequest, err)

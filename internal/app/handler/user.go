@@ -17,6 +17,11 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
+type errorResp struct {
+	Status      int    `json:"status"`
+	Description string `json:"error_description"`
+}
+
 // Register godoc
 // @Summary Регистрация пользователя
 // @Description Регистрация нового пользователя.
@@ -24,7 +29,7 @@ import (
 // @Accept json
 // @Produce json
 // @Param request body ds.RegisterReq true "Детали регистрации"
-// @Router /api/v3/users/sign_up [post]
+// @Router /api/user/signUp [post]
 func (h *Handler) Register(ctx *gin.Context) {
 	req := &ds.RegisterReq{}
 
@@ -70,7 +75,7 @@ func (h *Handler) Register(ctx *gin.Context) {
 // @Failure 400 {object} errorResp "Неверный запрос"
 // @Failure 401 {object} errorResp "Неверные учетные данные"
 // @Failure 500 {object} errorResp "Внутренняя ошибка сервера"
-// @Router /api/v3/users/login [post]
+// @Router /api/user/signIn [post]
 func (h *Handler) Login(ctx *gin.Context) {
 	cfg := h.Config
 	req := &ds.LoginReq{}
@@ -141,7 +146,7 @@ func (h *Handler) UsersList(ctx *gin.Context) {
 // @Failure 400 {object} errorResp "Неверный запрос"
 // @Failure 401 {object} errorResp "Неверные учетные данные"
 // @Failure 500 {object} errorResp "Внутренняя ошибка сервера"
-// @Router /api/v3/users/logout [get]
+// @Router /api/user/logout [get]
 func (h *Handler) Logout(ctx *gin.Context) {
 	jwtStr := ctx.GetHeader("Authorization")
 	if !strings.HasPrefix(jwtStr, jwtPrefix) {

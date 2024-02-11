@@ -7,6 +7,7 @@ import (
 	"main/internal/app/redis"
 	"main/internal/app/repository"
 	"net/http"
+	"os"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -15,6 +16,8 @@ import (
 
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+
+	_ "main/docs"
 )
 
 const (
@@ -23,20 +26,28 @@ const (
 )
 
 type Handler struct {
-	Logger     *logrus.Logger
+	Config     *config.Config
 	Repository *repository.Repository
 	MinioCli   *minio.Client
-	Config     *config.Config
 	Redis      *redis.Client
 	Hasher     hash.PasswordHasher
+	Logger     *logrus.Logger
 	//TokenManager auth.TokenManager
 }
 
-func NewHandler(r *repository.Repository, cli *minio.Client, l *logrus.Logger) *Handler {
+func NewHandler(cfg *config.Config,
+	r *repository.Repository,
+	mcli *minio.Client,
+	rcli *redis.Client,
+	log *logrus.Logger,
+) *Handler {
 	return &Handler{
+		Config:     cfg,
 		Repository: r,
-		MinioCli:   cli,
-		Logger:     l,
+		MinioCli:   mcli,
+		Redis:      rcli,
+		Hasher:     hash.NewSHA256Hasher(os.Getenv("SALT")),
+		Logger:     log,
 	}
 }
 
@@ -45,8 +56,8 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 
 	api := router.Group("/api")
 	// услуги
-	api.GET("/banknotes", h.WithoutJWTError(ds.Buyer, ds.Moderator, ds.Admin), h.BanknotesList) // ?
-	api.GET("/banknotes/:id", h.GetBanknotesById)                                               // ?
+	api.GET("/banknote", h.WithoutJWTError(ds.Buyer, ds.Moderator, ds.Admin), h.BanknotesList) // ?
+	api.GET("/banknotes/:id", h.GetBanknotesById)                                              // ?
 	api.POST("/banknotes", h.WithAuthCheck(ds.Moderator, ds.Admin), h.AddBanknote)
 	api.PUT("/banknotes", h.WithAuthCheck(ds.Moderator, ds.Admin), h.BanknoteUpdate)
 	api.PUT("/banknotes/upload-image", h.WithAuthCheck(ds.Moderator, ds.Admin), h.AddImage)
