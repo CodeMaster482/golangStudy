@@ -20,11 +20,6 @@ import (
 	_ "main/docs"
 )
 
-const (
-	creatorID   = 1
-	moderatorID = 1
-)
-
 type Handler struct {
 	Config     *config.Config
 	Repository *repository.Repository
@@ -79,8 +74,8 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	api.DELETE("/operations", h.WithAuthCheck(ds.Buyer, ds.Moderator, ds.Admin), h.DeleteOperation)
 
 	// m-m
-	api.DELETE("/operation-request-company", h.WithoutJWTError(ds.Buyer, ds.Moderator, ds.Admin), h.DeleteBanknoteFromRequest)
-	api.PUT("/operation-request-company", h.WithoutJWTError(ds.Buyer, ds.Moderator, ds.Admin), h.UpdateOperationBanknote)
+	api.DELETE("/operation-request-banknote", h.WithoutJWTError(ds.Buyer, ds.Moderator, ds.Admin), h.DeleteBanknoteFromRequest)
+	api.PUT("/operation-request-banknote", h.WithoutJWTError(ds.Buyer, ds.Moderator, ds.Admin), h.UpdateOperationBanknote)
 	registerStatic(router)
 
 	// auth && reg
@@ -89,8 +84,8 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	api.POST("/user/logout", h.Logout)
 
 	// асинхронный сервис
-	api.PUT("/tenders/user-form-start", h.WithoutJWTError(ds.Buyer, ds.Moderator, ds.Admin), h.UserRequest) // обращение к асинхронному сервису
-	api.PUT("/tenders/user-form-finish", h.FinishUserRequest)
+	api.PUT("/operations/user-form-start", h.WithoutJWTError(ds.Buyer, ds.Moderator, ds.Admin), h.UserRequest) // обращение к асинхронному сервису
+	api.PUT("/operations/user-form-finish", h.FinishUserRequest)
 }
 
 func registerStatic(router *gin.Engine) {

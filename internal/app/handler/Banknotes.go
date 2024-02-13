@@ -47,7 +47,7 @@ func (h *Handler) BanknotesList(ctx *gin.Context) {
 	userID, existsUser := ctx.Get("user_id")
 	var draftIdRes uint = 0
 	if existsUser {
-		basketId, errBask := h.Repository.GetOprationDraftID(userID.(uint))
+		basketId, errBask := h.Repository.GetOperationDraftID(userID.(uint))
 		if errBask != nil {
 			h.errorHandler(ctx, http.StatusInternalServerError, errBask)
 			return
@@ -258,13 +258,13 @@ func (h *Handler) BanknoteUpdate(ctx *gin.Context) {
 		return
 	}
 
-	h.successHandler(ctx, "updated_company", gin.H{
-		"id":           updatedBanknote.ID,
-		"company_name": updatedBanknote.Nominal,
-		"currency":     updatedBanknote.Currency,
-		"description":  updatedBanknote.Description,
-		"image_url":    updatedBanknote.ImageURL,
-		"status":       updatedBanknote.Status,
+	h.successHandler(ctx, "updated_banknote", gin.H{
+		"id":               updatedBanknote.ID,
+		"banknote_nominal": updatedBanknote.Nominal,
+		"currency":         updatedBanknote.Currency,
+		"description":      updatedBanknote.Description,
+		"image_url":        updatedBanknote.ImageURL,
+		"status":           updatedBanknote.Status,
 	})
 }
 

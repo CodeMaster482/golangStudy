@@ -75,56 +75,150 @@ func (h *Handler) OperationList(ctx *gin.Context) {
 		return
 	}
 
-	tenders, err := h.Repository.OperationList(queryStatus, startDate, endDate)
-
+	operations, err := h.Repository.OperationsList(queryStatus, startDate, endDate)
 	if err != nil {
 		h.errorHandler(ctx, http.StatusNoContent, err)
 		return
 	}
-	h.successHandler(ctx, "tenders", tenders)
+	h.successHandler(ctx, "operations", operations)
 }
 
 func (h *Handler) operationByUserId(ctx *gin.Context, userID string) {
-	tenders, errDB := h.Repository.OperationByUserID(userID)
+	operations, errDB := h.Repository.OperationByUserID(userID)
 	if errDB != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, errDB)
 		return
 	}
 
-	h.successHandler(ctx, "tenders", tenders)
+	h.successHandler(ctx, "operations", operations)
 }
 
+// GetOperationById godoc
+// @Summary      Get operation request by ID
+// @Description  Retrieves a operation request with the given ID
+// @Tags         Operations
+// @Accept       json
+// @Produce      json
+// @Param        id  path  int  true  "Operation Request ID"
+// @Success      200  {object}  ds.OperationDetails
+// @Failure      400  {object}  error
+// @Router       /api/operation/{id} [get]
 func (h *Handler) GetOperationById(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 
-	req, bank, err := h.Repository.GetOperationWithDataByID(uint(id))
+	//req, bank, err := h.Repository.GetOperationWithDataByID(uint(id))
+	operation, err := h.Repository.OperationByID(uint(id))
 	if err != nil {
 		h.errorHandler(c, http.StatusBadRequest, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"operation": req,
-		"banknote":  bank,
-	})
+	// c.JSON(http.StatusOK, gin.H{ "operation": req, "banknote":  bank})
+	h.successHandler(c, "operation", operation)
 }
 
+// UpdateTender godoc
+// @Summary      Update Tender by admin
+// @Description  Update Tender by admin
+// @Tags         Operations
+// @Accept       json
+// @Produce      json
+// @Param        input    body    ds.Tender  true    "updated Assembly"
+// @Success      200          {object}  nil
+// @Failure      400          {object}  error
+// @Failure      500          {object}  error
+// @Router       /api/operations [put]
 func (h *Handler) UpdateOperation(ctx *gin.Context) {
-	var updatedOperation ds.Operation
+	userID, existsUser := ctx.Get("user_id")
+	userRole, existsRole := ctx.Get("user_role")
+	if !existsUser || !existsRole {
+		h.errorHandler(ctx, http.StatusUnauthorized, errors.New("not fount `user_id` or `user_role`"))
+		return
+	}
+
+	var updatedOperation ds.UpdateOperation
 	if err := ctx.BindJSON(&updatedOperation); err != nil {
 		h.errorHandler(ctx, http.StatusBadRequest, err)
 		return
 	}
+
 	if updatedOperation.ID == 0 {
 		h.errorHandler(ctx, http.StatusBadRequest, errors.New("id некоректен"))
 		return
 	}
-	if err := h.Repository.UpdateOperation(&updatedOperation); err != nil {
+
+	var updatedO ds.Operation
+	updatedO.ID = updatedOperation.ID
+	updatedO.Name = updatedOperation.Name
+
+	operation, err := h.Repository.OperationModel(updatedO.ID)
+
+	if err != nil {
+		h.errorHandler(ctx, http.StatusInternalServerError, fmt.Errorf("hike with `id` = %d not found", operation.ID))
+		return
+	}
+
+	if operation.UserID != userID && userRole == ds.Buyer {
+		h.errorHandler(ctx, http.StatusForbidden, errors.New("you cannot change the hike if it's not yours"))
+		return
+	}
+
+	if err := h.Repository.UpdateOperation(&updatedO); err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, "")
+	h.successHandler(ctx, "updated_tender", gin.H{
+		"id":              updatedOperation.ID,
+		"operation_name":  updatedOperation.Name,
+		"creation_date":   operation.CreatedAt,
+		"completion_date": operation.CompletionAt,
+		"formation_date":  operation.FormationAt,
+		"user_id":         operation.UserID,
+		"status":          operation.Status,
+	})
+}
+
+// func (h *Handler) CreateDraft(c *gin.Context) {
+// 	draftID, err := h.Repository.CreateOperationDraft(creatorID)
+
+// 	if err != nil {
+// 		h.errorHandler(c, http.StatusInternalServerError, err)
+// 	}
+
+// 	c.JSON(http.StatusOK, gin.H{"draftID": draftID})
+// }
+
+// FormOperationsRequest godoc
+// @Summary      Form Banknote by client
+// @Description  Form Banknote by client
+// @Tags         Operations
+// @Accept       json
+// @Produce      json
+// @Param        id  path  int  true  "Operation form ID"
+// @Success      200          {object}  ds.OperationDetails
+// @Failure      400          {object}  error
+// @Failure      500          {object}  error
+// @Router       /api/operations/form [put]
+func (h *Handler) FormOperationRequest(c *gin.Context) {
+	userID, existsUser := c.Get("user_id")
+	if !existsUser {
+		h.errorHandler(c, http.StatusUnauthorized, errors.New("not fount `user_id` or `user_role`"))
+		return
+	}
+
+	_, err := h.Repository.FormOperationRequestByID(userID.(uint))
+	if err != nil {
+		h.errorHandler(c, http.StatusBadRequest, err)
+		return
+	}
+
+	if err != nil {
+		h.errorHandler(c, http.StatusBadRequest, err)
+		return
+	}
+
+	c.Status(http.StatusOK)
 }
 
 // UpdateStatusOperationRequest godoc
@@ -164,110 +258,144 @@ func (h *Handler) UpdateStatusOperationRequest(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-func (h *Handler) CreateDraft(c *gin.Context) {
-	draftID, err := h.Repository.CreateOperationDraft(creatorID)
+// func (h *Handler) FinishOperationRequest(c *gin.Context) {
+// 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 
-	if err != nil {
-		h.errorHandler(c, http.StatusInternalServerError, err)
-	}
+// 	if err := h.Repository.FinishEncryptDecryptRequestByID(uint(id), moderatorID); err != nil {
+// 		h.errorHandler(c, http.StatusBadRequest, err)
+// 		return
+// 	}
 
-	c.JSON(http.StatusOK, gin.H{"draftID": draftID})
-}
+// 	c.JSON(http.StatusOK, "завершена")
+// }
 
-func (h *Handler) FormOperationRequest(c *gin.Context) {
-	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
-
-	err := h.Repository.FormOperationRequestByID(uint(id), creatorID)
-	if err != nil {
-		h.errorHandler(c, http.StatusBadRequest, err)
-		return
-	}
-
-	req, com, err := h.Repository.GetOperationWithDataByID(uint(id))
-	if err != nil {
-		h.errorHandler(c, http.StatusBadRequest, err)
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"operation": req,
-		"banknotes": com,
-	})
-}
-
-func (h *Handler) RejectOperationRequest(c *gin.Context) {
-	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
-
-	if err := h.Repository.RejectOperationRequestByID(uint(id), moderatorID); err != nil {
-		h.errorHandler(c, http.StatusBadRequest, err)
-		return
-	}
-
-	c.JSON(http.StatusOK, "отклонена")
-}
-
-func (h *Handler) FinishOperationRequest(c *gin.Context) {
-	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
-
-	if err := h.Repository.FinishEncryptDecryptRequestByID(uint(id), moderatorID); err != nil {
-		h.errorHandler(c, http.StatusBadRequest, err)
-		return
-	}
-
-	c.JSON(http.StatusOK, "завершена")
-}
+// DeleteBanknoteFromRequest godoc
+// @Summary      Delete banknote from request
+// @Description  Deletes a banknote from a request based on the user ID and banknote ID
+// @Tags         Operation_Banknote
+// @Accept       json
+// @Produce      json
+// @Param        id  path  int  true  "banknote ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  error
+// @Router       /api/operation-request-banknote [delete]
 func (h *Handler) DeleteBanknoteFromRequest(c *gin.Context) {
-	var deleteFromOperation ds.OperationBanknote
-	if err := c.BindJSON(&deleteFromOperation); err != nil {
+	var body struct {
+		ID int `json:"id"`
+	}
+
+	if err := c.BindJSON(&body); err != nil {
 		h.errorHandler(c, http.StatusBadRequest, err)
 		return
 	}
-	if deleteFromOperation.OperationID <= 0 {
-		h.errorHandler(c, http.StatusBadRequest, errors.New("id не найден"))
+
+	if body.ID == 0 {
+		h.errorHandler(c, http.StatusBadRequest, errors.New("param `id` not found"))
 		return
 	}
 
-	if deleteFromOperation.BanknoteID <= 0 {
-		h.errorHandler(c, http.StatusBadRequest, errors.New("id не найден"))
-		return
-	}
-
-	request, banknotes, err := h.Repository.DeleteBanknoteFromRequest(deleteFromOperation)
+	err := h.Repository.DeleteBanknoteFromRequest(body.ID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "банкнота удалена из заявки", "banknotes": banknotes, "monitoring-request": request})
+	h.successHandler(c, "deleted_banknote_operation", body.ID)
 }
 
-func (h *Handler) DeleteOperation(c *gin.Context) {
-	//ModeratorID тут проверка, что это модератор -> 5 lab
-	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
+// func (h *Handler) RejectOperationRequest(c *gin.Context) {
+// 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 
-	err := h.Repository.DeleteOperationByID(uint(id))
-	if err != nil {
-		h.errorHandler(c, http.StatusInternalServerError, err)
+// 	if err := h.Repository.RejectOperationRequestByID(uint(id), moderatorID); err != nil {
+// 		h.errorHandler(c, http.StatusBadRequest, err)
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, "отклонена")
+// }
+
+// DeleteOperation godoc
+// @Summary      Delete operation request by user ID
+// @Description  Deletes a operation request for the given user ID
+// @Tags         Operations
+// @Accept       json
+// @Produce      json
+// @Param        user_id  path  int  true  "User ID"
+// @Success      200  {object}  map[string]any
+// @Failure      400  {object}  error
+// @Router       /api/operations [delete]
+func (h *Handler) DeleteOperation(c *gin.Context) {
+	userID, existsUser := c.Get("user_id")
+	userRole, existsRole := c.Get("user_role")
+	if !existsUser || !existsRole {
+		h.errorHandler(c, http.StatusUnauthorized, errors.New("not fount `user_id` or `user_role`"))
 		return
 	}
 
-	c.JSON(http.StatusOK, "deleted")
-}
+	//userId := c.GetInt(userCtx)
+	var request struct {
+		ID uint `json:"id"`
+	}
 
-func (h *Handler) UpdateOperationBanknote(c *gin.Context) {
-	var OperationBanknote ds.OperationBanknote
-	if err := c.BindJSON(&OperationBanknote); err != nil {
+	if err := c.BindJSON(&request); err != nil {
 		h.errorHandler(c, http.StatusBadRequest, err)
 		return
 	}
 
-	if OperationBanknote.OperationID == 0 || OperationBanknote.BanknoteID == 0 {
-		h.errorHandler(c, http.StatusBadRequest, errors.New("не верные id тендера или кампапии"))
+	if request.ID == 0 {
+		h.errorHandler(c, http.StatusBadRequest, errors.New("param `id` not found"))
 		return
 	}
 
-	err := h.Repository.UpdateOperationBanknote(OperationBanknote.OperationID, OperationBanknote.BanknoteID, OperationBanknote.Quantity)
+	//userId := c.GetInt(userCtx)
+
+	operation, err := h.Repository.OperationModel(request.ID)
+	if err != nil {
+		h.errorHandler(c, http.StatusInternalServerError, fmt.Errorf("operation with `id` = %d not found", operation.ID))
+		return
+	}
+
+	if operation.UserID != userID && userRole == ds.Buyer {
+		h.errorHandler(c, http.StatusForbidden, errors.New("you are not the creator. you can't delete a tender"))
+		return
+	}
+
+	err = h.Repository.DeleteOperationByID(request.ID)
+	if err != nil {
+		h.errorHandler(c, http.StatusBadRequest, err)
+		return
+	}
+
+	h.successHandler(c, "operation_id", request.ID)
+}
+
+// UpdateOperationBanknote godoc
+// @Summary      Update money Operation Banknote
+// @Description  Update money Operation Banknote by client
+// @Tags         Operation_Banknote
+// @Accept       json
+// @Produce      json
+// @Param        input    	  body    ds.OperationBanknote true    "Update quantity Operation Banknote"
+// @Success      200          {object} map[string]string "update"
+// @Failure      400          {object}  error
+// @Failure      500          {object}  error
+// @Router       /api/tender-request-company [put]
+func (h *Handler) UpdateOperationBanknote(c *gin.Context) {
+	//var operationBanknote ds.OperationBanknote
+	var OperationBanknoteU ds.OperationBanknoteUpdate
+	if err := c.BindJSON(&OperationBanknoteU); err != nil {
+		h.errorHandler(c, http.StatusBadRequest, err)
+		return
+	}
+
+	//if OperationBanknoteU.OperationID == 0 || OperationBanknoteU.BanknoteID == 0 {
+	//	h.errorHandler(c, http.StatusBadRequest, errors.New("не верные id операции или банкноты"))
+	//	return
+	//}
+
+	err := h.Repository.UpdateOperationBanknote(OperationBanknoteU.ID, OperationBanknoteU.Quantity)
 	if err != nil {
 		h.errorHandler(c, http.StatusInternalServerError, err)
+		return
 	}
 
 	c.JSON(http.StatusOK, "update")

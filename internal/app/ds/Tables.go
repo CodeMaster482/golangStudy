@@ -23,18 +23,18 @@ type User struct {
 
 // Operation represents the 'operation' table
 type Operation struct {
-	ID                uint                `json:"operation_id" gorm:"primaryKey"`
-	UserID            uint                `json:"user_id"`
-	User              User                `json:"user" gorm:"foreignkey:UserID"`
-	ModeratorID       *uint               `json:"moderator_id"`
-	Moderator         User                `json:"moderator" gorm:"foreignkey:ModeratorID"`
-	Name              string              `json:"is_income" gorm:"type:varchar(255)"`
-	OperationBanknote []OperationBanknote `json:"operation_banknote" gorm:"foreignkey:OperationID"`
-	Status            string              `json:"status" gorm:"type:TEXT"`
-	StatusCheck       string              `json:"status_check"`
-	CreatedAt         time.Time           `json:"crated_at" gorm:"type:TIMESTAMPTZ;default:CURRENT_TIMESTAMP;not null"`
-	FormationAt       time.Time           `json:"formation_at" gorm:"type:TIMESTAMPTZ;default:CURRENT_TIMESTAMP"`
-	CompletionAt      time.Time           `json:"comletion_at" gorm:"type:TIMESTAMPTZ"`
+	ID                 uint                `json:"operation_id" gorm:"primaryKey"`
+	UserID             uint                `json:"user_id"`
+	User               User                `json:"user" gorm:"foreignkey:UserID"`
+	ModeratorID        *uint               `json:"moderator_id"`
+	Moderator          User                `json:"moderator" gorm:"foreignkey:ModeratorID"`
+	Name               string              `json:"is_income" gorm:"type:varchar(255)"`
+	OperationBanknotes []OperationBanknote `json:"operation_banknote" gorm:"foreignkey:OperationID"`
+	Status             string              `json:"status" gorm:"type:TEXT"`
+	StatusCheck        string              `json:"status_check"`
+	CreatedAt          time.Time           `json:"crated_at" gorm:"type:TIMESTAMPTZ;default:CURRENT_TIMESTAMP;not null"`
+	FormationAt        time.Time           `json:"formation_at" gorm:"type:TIMESTAMPTZ;default:CURRENT_TIMESTAMP"`
+	CompletionAt       time.Time           `json:"comletion_at" gorm:"type:TIMESTAMPTZ"`
 }
 
 type OperationResponse struct {
@@ -95,7 +95,7 @@ type AddToBanknoteID struct {
 
 // OperationBanknote represents the 'operation_banknote' table
 type OperationBanknote struct {
-	ID          uint      `json:"opration_banknote_id" gorm:"primaryKey"`
+	ID          uint      `json:"id" gorm:"primaryKey"`
 	OperationID uint      `json:"operation_id"`
 	BanknoteID  uint      `json:"banknote_id"`
 	Operations  Operation `json:"opration" gorm:"foreignKey:OperationID"`
