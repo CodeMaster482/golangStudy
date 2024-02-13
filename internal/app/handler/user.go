@@ -240,6 +240,7 @@ func (h *Handler) FinishUserRequest(c *gin.Context) {
 
 	if request.Token != ServerToken {
 		c.AbortWithError(http.StatusForbidden, errors.New("токен не верный"))
+		return
 	}
 
 	// сохраняем в базу

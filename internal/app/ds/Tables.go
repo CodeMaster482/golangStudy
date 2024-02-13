@@ -32,9 +32,9 @@ type Operation struct {
 	OperationBanknotes []OperationBanknote `json:"operation_banknote" gorm:"foreignkey:OperationID"`
 	Status             string              `json:"status" gorm:"type:TEXT"`
 	StatusCheck        string              `json:"status_check"`
-	CreatedAt          time.Time           `json:"crated_at" gorm:"type:TIMESTAMPTZ;default:CURRENT_TIMESTAMP;not null"`
-	FormationAt        time.Time           `json:"formation_at" gorm:"type:TIMESTAMPTZ;default:CURRENT_TIMESTAMP"`
-	CompletionAt       time.Time           `json:"comletion_at" gorm:"type:TIMESTAMPTZ"`
+	CreatedAt          time.Time           `json:"crated_at" gorm:"type:date;default:current_date;not null"`
+	FormationAt        time.Time           `json:"formation_at" gorm:"type:date;"`
+	CompletionAt       time.Time           `json:"comletion_at" gorm:"type:date"`
 }
 
 type OperationResponse struct {
@@ -48,7 +48,7 @@ type OperationResponse struct {
 	ModeratorName     string              `json:"moderator_name"`
 	ModeratorLogin    string              `json:"moderator_login"`
 	FormationAt       time.Time           `json:"formation_at"`
-	CreatedAt         time.Time           `json:"crated_at" `
+	CreatedAt         time.Time           `json:"created_at" `
 	CompletionAt      time.Time           `json:"comletion_at"`
 }
 

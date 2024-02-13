@@ -210,7 +210,7 @@ func (r *Repository) OperationsList(statusID string, startDate time.Time, endDat
 
 	result := r.db.
 		Preload("User").
-		Where("status = ? AND status != 'черновик' AND creation_date BETWEEN ? AND ?", statusID, startDate, endDate).
+		Where("status = ? AND status != 'черновик' AND created_at BETWEEN ? AND ?", statusID, startDate, endDate).
 		Find(&operations)
 
 	if result.Error != nil {
