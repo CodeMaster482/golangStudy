@@ -41,6 +41,7 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	// service
 	api.GET("/banknotes", h.BanknotesList)         // услуги
 	api.GET("/banknotes/:id", h.BanknoteById)      // конкретная
+	api.POST("/banknotes", h.AddBanknote)          // создать новую услугу
 	api.PUT("/banknotes/:id", h.BanknoteUpdate)    // изменить
 	api.DELETE("/banknotes/:id", h.DeleteBanknote) // удалить
 
@@ -53,6 +54,7 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	api.PUT("/operation/form/:id", h.FormOperationRequest)
 	api.PUT("/operations/reject/:id", h.RejectOperationRequest)
 	api.PUT("/operation/finish/:id", h.FinishOperationRequest)
+	api.DELETE("/operations/:id", h.DeleteOperation)
 
 	api.DELETE("/banknoteOperation", h.DeleteBanknoteFromRequest)
 	api.PUT("/banknoteOperation", h.UpdateOperationBanknote)

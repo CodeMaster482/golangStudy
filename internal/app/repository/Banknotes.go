@@ -159,8 +159,8 @@ func (r *Repository) AddBanknoteToDraft(dataID uint, creatorID uint) (uint, erro
 
 	// добавляем запись в мм
 	requestToData := ds.OperationBanknote{
-		OperationID: dataID,
-		BanknoteID:  draftReq.ID,
+		OperationID: draftReq.ID,
+		BanknoteID:  dataID,
 		Quantity:    0,
 	}
 

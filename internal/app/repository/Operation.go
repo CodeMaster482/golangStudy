@@ -76,11 +76,11 @@ func (r *Repository) OperationList(status, start, end string) (*[]ds.Operation, 
 	}
 
 	if start != "" {
-		query = query.Where("creation_date >= ?", start)
+		query = query.Where("created_at >= ?", start)
 	}
 
 	if end != "" {
-		query = query.Where("creation_date <= ?", end)
+		query = query.Where("created_at <= ?", end)
 	}
 	result := query.Find(&operation)
 	return &operation, result.Error
@@ -153,7 +153,7 @@ func (r *Repository) finishRejectHelper(status string, requestID, moderatorID ui
 		Take(&req)
 
 	if res.Error != nil {
-		return res.Error
+		return errors.New("нет такой заявки")
 	}
 	if res.RowsAffected == 0 {
 		return errors.New("нет такой заявки")
@@ -185,12 +185,13 @@ func (r *Repository) DeleteOperationByID(requestID uint) error { // ?
 	}
 
 	req.Status = "удалён"
-	delTime := time.Now()
+	// delTime := time.Now()
 	req.CompletionAt = time.Now()
 	if err := r.db.Save(&req).Error; err != nil {
 		return err
 	}
-	if err := r.db.Model(&req).Update("deleted_at", delTime).Error; err != nil {
+	// .Update("deleted_at", delTime)
+	if err := r.db.Model(&req).Error; err != nil {
 		return err
 	}
 

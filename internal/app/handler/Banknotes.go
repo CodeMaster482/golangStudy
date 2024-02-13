@@ -124,6 +124,12 @@ func (h *Handler) AddBanknote(ctx *gin.Context) {
 		return
 	}
 
+	newService.Currency = ctx.Request.FormValue("currency")
+	if newService.Currency == "" {
+		h.errorHandler(ctx, http.StatusBadRequest, errors.New("описание не может быть пустой"))
+		return
+	}
+
 	file, header, err := ctx.Request.FormFile("image")
 	if err != nil && err != http.ErrMissingFile {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "ошибка при загрузке изображения"})
