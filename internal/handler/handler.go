@@ -5,8 +5,13 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go"
 	"github.com/sirupsen/logrus"
+)
+
+const (
+	creatorID   = 1
+	moderatorID = 1
 )
 
 type Handler struct {
@@ -29,22 +34,24 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	// service
 	api.GET("/banknotes", h.BanknotesList)
 	api.GET("/banknotes/:id", h.BanknoteById)
-	api.POST("/banknotes/:id", h.BanknoteUpdate)
+	// api.POST("/banknotes/:id", h.BanknoteUpdate)
 	api.DELETE("/banknotes/:id", h.DeleteBanknote)
 
 	api.POST("/banknotes/request/:id", h.AddBanknoteToRequest)
 
+	//api.POST("/banknotes/request/:id", h.AddBanknoteToRequest)
+
 	// application
-
-	api.GET("/operations", h.OperationList)
-	api.GET("/operations/:id", h.OperationById)
-	api.PUT("/oprations", h.OprationUpdate)
-	api.PUT("/opration/form/:id", h.FormOprationApplication)
-	api.PUT("/oprations/reject/:id", h.RejectOperationApplication)
-	api.PUT("/opration/finish/:id", h.FinishOperationApplication)
-
-	api.DELETE("/banknoteOperation", h.DeleteBanknoteFromApplication)
-	api.PUT("/banknoteOperation", h.UpdateOperationBnaknote)
+	//
+	//api.GET("/operations", h.OperationList)
+	//api.GET("/operations/:id", h.OperationById)
+	//api.PUT("/oprations", h.OprationUpdate)
+	//api.PUT("/opration/form/:id", h.FormOprationApplication)
+	//api.PUT("/oprations/reject/:id", h.RejectOperationApplication)
+	//api.PUT("/opration/finish/:id", h.FinishOperationApplication)
+	//
+	//api.DELETE("/banknoteOperation", h.DeleteBanknoteFromApplication)
+	//api.PUT("/banknoteOperation", h.UpdateOperationBnaknote)
 
 	// router.GET("/banknotes", h.BanknotesList)
 	// router.GET("/banknotes/:id", h.BanknoteById)

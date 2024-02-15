@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	BucketName = "company-name-server"
+	BucketName = "banknote-name-server"
 	MinioHost  = "127.0.0.1:9000"
 )
 

@@ -23,6 +23,6 @@ func (h *Handler) SaveImage(ctx context.Context, file multipart.File, header *mu
 	return fmt.Sprintf("http://%s/%s/%s", minioCli.MinioHost, minioCli.BucketName, objectName), nil
 }
 
-func (h *Handler) DeleteImage(objectName string) error {
+func (h *Handler) DeleteImage(ctx context.Context, objectName string) error {
 	return h.MinioCli.RemoveObject(minioCli.BucketName, objectName)
 }

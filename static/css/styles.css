@@ -1,3 +1,7 @@
+.root {
+    display: flex;
+}
+
 .product-card {
     border: 1px solid #ccc;
     border-radius: 10px;
@@ -46,6 +50,36 @@
 
 .main-container {
     display: flex;
+    flex-wrap: wrap;
+}
+
+.buscket {
+    width: 46.8px;
+    height: 46.8px;
+}
+
+.img-buscket {
+    width: auto;
+    height: auto;
+}
+
+.buscket-num {
+    background-color:red;
+    border:1px solid red;    
+    height:20px;
+    border-radius:50%;
+    -moz-border-radius:50%;
+    -webkit-border-radius:50%;
+    width:20px;
+    text-align: center;
+    color: #fff;
+    margin-left: 35px;
+    position: absolute;
+}
+
+.card-btn {
+    border: none;
+    color: aquamarine;
 }
 
 /* Основные стили для навигационной панели */

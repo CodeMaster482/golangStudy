@@ -26,7 +26,9 @@ type Services struct {
 }*/
 
 func (h *Handler) BanknotesList(context *gin.Context) {
-	banknotesList, err := h.Repository.BanknoteList()
+	draftId, _ := h.Repository.GetOprationDraftID(creatorID)
+
+	banknotesList, count, err := h.Repository.BanknoteList(draftId)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to retrire to banknotes",
@@ -44,15 +46,41 @@ func (h *Handler) BanknotesList(context *gin.Context) {
 		}
 
 		context.HTML(http.StatusOK, "index.html", gin.H{
-			"services": result,
-			"banknote": query,
+			"services":  result,
+			"banknote":  query,
+			"BucketNum": count,
 		})
 	} else {
 		context.HTML(http.StatusOK, "index.html", gin.H{
-			"services": banknotesList,
-			"banknote": query,
+			"services":  banknotesList,
+			"banknote":  query,
+			"BucketNum": count,
 		})
 	}
+}
+
+func (h *Handler) AddBanknoteToRequest(ctx *gin.Context) {
+	id, _ := strconv.ParseUint(ctx.Param("id"), 10, 64)
+
+	_, err := h.Repository.AddBanknoteToDraft(uint(id), creatorID)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": err})
+		return
+	}
+
+	draftId, _ := h.Repository.GetOprationDraftID(creatorID)
+
+	banknotesList, count, err := h.Repository.BanknoteList(draftId)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to retrire to banknotes",
+		})
+	}
+
+	ctx.HTML(http.StatusOK, "index.html", gin.H{
+		"services":  banknotesList,
+		"BucketNum": count,
+	})
 }
 
 func (h *Handler) BanknoteById(context *gin.Context) {

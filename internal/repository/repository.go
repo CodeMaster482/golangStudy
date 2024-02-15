@@ -6,6 +6,9 @@ import (
 	"gorm.io/gorm"
 )
 
+const draftStatus = "черновик"
+const draftId = 1
+
 type Repository struct {
 	logger *logrus.Logger
 	db     *gorm.DB

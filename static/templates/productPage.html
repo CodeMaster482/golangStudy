@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <link rel="stylesheet" href="{{ .styleFile }}"> 
+        <link rel="stylesheet" href="/static/css/styles.css"> 
     </head>
     <body>
         {{ template "navbar" }}
@@ -11,14 +11,16 @@
         </h1>
 
         <div class ="main-container">
-            <div class="product-card" id="{{ .services.Id }}">
-                <img src="{{ .services.Img }}" alt= "{{ .services.Name }}" class="product-image">
-                <h2 class="product-title">{{ .services.Name }}</h2>
+            <div class="product-card" id="{{ .services.ID }}">
+                <img src="{{ .services.ImageURL }}" alt= "{{ .services.Nominal }}" class="product-image">
+                <h2 class="product-title">{{ .services.Nominal }}</h2>
                 <p class="product-description">{{ .services.Description }}</p>
-                <a href="/service" id="try-button">home</a>
+                <a href="/api/banknotes" id="try-button">home</a>
            </div>
         </div>
-
-        <a href="/static/image.jpg">Gopher</a>
+        
+        <footer>
+            <a href="/static/image.jpg">Gopher</a>
+        </footer>
     </body>
 </html>

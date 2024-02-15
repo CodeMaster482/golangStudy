@@ -37,6 +37,8 @@ type Banknote struct {
 	Description string  `gorm:"type:TEXT"`
 	ImageURL    string  `gorm:"type:TEXT;not null;check:LENGTH(image_url) <= 500"`
 	IsDelete    bool    `gorm:"type:BOOLEAN"`
+	Currency    string  `gorm:"type:TEXT"`
+	Status      string  `gorm:"type:VARCHAR(20)"`
 }
 
 // OperationBanknote represents the 'operation_banknote' table
