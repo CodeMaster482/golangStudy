@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/banknotes": {
+        "/api/banknote": {
             "get": {
                 "description": "Banknotes List",
                 "consumes": [
@@ -32,7 +32,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Query string to filter banknotes by nominal",
-                        "name": "name",
+                        "name": "banknote_name",
                         "in": "query"
                     }
                 ],
@@ -48,7 +48,9 @@ const docTemplate = `{
                         "schema": {}
                     }
                 }
-            },
+            }
+        },
+        "/api/banknotes": {
             "post": {
                 "description": "Add a new banknote with image, nominal, currency",
                 "consumes": [
@@ -83,7 +85,7 @@ const docTemplate = `{
                         "in": "formData"
                     },
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "Banknote currency",
                         "name": "currency",
                         "in": "formData",
@@ -203,6 +205,53 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/banknotes/request": {
+            "post": {
+                "description": "Adds a banknote to a operation request",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Banknotes"
+                ],
+                "summary": "Add banknote to request",
+                "parameters": [
+                    {
+                        "description": "Добавление банкноты",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ds.AddToBanknoteID"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cAdd access token here\u003e",
+                        "description": "Insert your access token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    }
+                }
+            }
+        },
         "/api/banknotes/{id}": {
             "get": {
                 "description": "Banknote By ID",
@@ -243,7 +292,87 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/operation": {
+        "/api/operation-request-banknote": {
+            "put": {
+                "description": "Update money Operation Banknote by client",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Operation_Banknote"
+                ],
+                "summary": "Update money Operation Banknote",
+                "parameters": [
+                    {
+                        "description": "Update quantity Operation Banknote",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ds.OperationBanknote"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "update",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            },
+            "delete": {
+                "description": "Deletes a banknote from a request based on the user ID and banknote ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Operation_Banknote"
+                ],
+                "summary": "Delete banknote from request",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "banknote ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/operations": {
             "get": {
                 "description": "Retrieves a list of Operation requests based on the provided parameters",
                 "consumes": [
@@ -274,6 +403,14 @@ const docTemplate = `{
                         "description": "End date in the format '2006-01-02T15:04:05Z'",
                         "name": "end_date",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cAdd access token here\u003e",
+                        "description": "Insert your access token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -292,6 +429,164 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            },
+            "put": {
+                "description": "Update Operation by admin",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Operations"
+                ],
+                "summary": "Update Operation by admin",
+                "parameters": [
+                    {
+                        "description": "updated Assembly",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ds.Operation"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            },
+            "delete": {
+                "description": "Deletes a operation request for the given user ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Operations"
+                ],
+                "summary": "Delete operation request by user ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/operations/form": {
+            "put": {
+                "description": "Form Banknote by client",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Operations"
+                ],
+                "summary": "Form Banknote by client",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Operation form ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cAdd access token here\u003e",
+                        "description": "Insert your access token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/operations/{id}": {
+            "get": {
+                "description": "Retrieves a operation request with the given ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Operations"
+                ],
+                "summary": "Get operation request by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Operation Request ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cAdd access token here\u003e",
+                        "description": "Insert your access token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {}
                     }
                 }
@@ -422,44 +717,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/banknotes/request": {
-            "post": {
-                "description": "Adds a banknote to a operation request",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Banknotes"
-                ],
-                "summary": "Add banknote to request",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Threat ID",
-                        "name": "threatId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {}
-                    }
-                }
-            }
-        },
-        "/operation/updateStatus": {
+        "/operations/updateStatus": {
             "put": {
                 "description": "Updates the status of a operation request with the given ID on \"завершен\"/\"отклонен\"",
                 "consumes": [
@@ -507,6 +765,17 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "ds.AddToBanknoteID": {
+            "type": "object",
+            "properties": {
+                "banknote_id": {
+                    "type": "integer"
+                },
+                "quantity": {
+                    "type": "integer"
+                }
+            }
+        },
         "ds.Banknote": {
             "type": "object",
             "properties": {
@@ -622,14 +891,14 @@ const docTemplate = `{
                 "banknote_id": {
                     "type": "integer"
                 },
+                "id": {
+                    "type": "integer"
+                },
                 "operation_id": {
                     "type": "integer"
                 },
                 "opration": {
                     "$ref": "#/definitions/ds.Operation"
-                },
-                "opration_banknote_id": {
-                    "type": "integer"
                 },
                 "quantity": {
                     "type": "integer"

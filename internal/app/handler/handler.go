@@ -50,6 +50,7 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	router.GET("swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	api := router.Group("/api")
+
 	// услуги
 	api.GET("/banknote", h.WithoutJWTError(ds.Buyer, ds.Moderator, ds.Admin), h.BanknotesList) // ?
 	api.GET("/banknotes/:id", h.GetBanknotesById)                                              // ?

@@ -33,10 +33,10 @@ type Services struct {
 // @Tags         Banknotes
 // @Accept       json
 // @Produce      json
-// @Param        name query   string  false  "Query string to filter banknotes by nominal"
+// @Param        banknote_name query   string  false  "Query string to filter banknotes by nominal"
 // @Success      200          {object}  ds.BanknoteList
 // @Failure      500          {object}  error
-// @Router       /api/banknotes [get]
+// @Router       /api/banknote [get]
 func (h *Handler) BanknotesList(ctx *gin.Context) {
 	queryText, _ := ctx.GetQuery("banknote_name")
 	banknotes, err := h.Repository.BanknotesList(queryText)
@@ -89,6 +89,7 @@ func (h *Handler) GetBanknotesById(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id")[:], 10, 64)
 	if err != nil {
 		h.errorHandler(ctx, http.StatusBadRequest, err)
+		return
 	}
 
 	banknote, err := h.Repository.GetBanknoteById(uint(id))
@@ -148,8 +149,10 @@ func (h *Handler) DeleteBanknote(ctx *gin.Context) {
 
 	if gorm.IsRecordNotFoundError(err) {
 		h.errorHandler(ctx, http.StatusBadRequest, err)
+		return
 	} else if err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
+		return
 	}
 
 	h.successHandler(ctx, "deleted_id", id)
@@ -164,7 +167,7 @@ func (h *Handler) DeleteBanknote(ctx *gin.Context) {
 // @Param        image formData file true "Banknote image"
 // @Param        nominal formData string true "Banknote nominal"
 // @Param        description formData string false "Banknote description"
-// @Param        currency formData integer true "Banknote currency"
+// @Param        currency formData string true "Banknote currency"
 // @Success      201  {string}  map[string]any
 // @Failure      400  {object}  map[string]any
 // @Router       /api/banknotes [post]
@@ -323,10 +326,11 @@ func (h *Handler) AddImage(ctx *gin.Context) {
 // @Tags         Banknotes
 // @Accept       json
 // @Produce      json
-// @Param        threatId  path  int  true  "Threat ID"
+// @Param request body ds.AddToBanknoteID true "Добавление банкноты"
+// @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
 // @Success      200  {object}  map[string]any
 // @Failure      400  {object}  error
-// @Router       /banknotes/request [post]
+// @Router       /api/banknotes/request [post]
 func (h *Handler) AddBanknoteToRequest(ctx *gin.Context) {
 	userID, exists := ctx.Get("user_id")
 	if !exists {

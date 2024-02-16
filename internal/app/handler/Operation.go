@@ -36,10 +36,11 @@ func ParseDateString(dateString string) (time.Time, error) {
 // @Param        status_id      query  string    false  "Operation request status"
 // @Param        start_date  query  string    false  "Start date in the format '2006-01-02T15:04:05Z'"
 // @Param        end_date    query  string    false  "End date in the format '2006-01-02T15:04:05Z'"
+// @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
 // @Success      200  {object}  []ds.Operation
 // @Failure      400  {object}  error
 // @Failure      500  {object}  error
-// @Router       /api/operation [get]
+// @Router       /api/operations [get]
 func (h *Handler) OperationList(ctx *gin.Context) {
 	userID, existsUser := ctx.Get("user_id")
 	userRole, existsRole := ctx.Get("user_role")
@@ -100,9 +101,10 @@ func (h *Handler) operationByUserId(ctx *gin.Context, userID string) {
 // @Accept       json
 // @Produce      json
 // @Param        id  path  int  true  "Operation Request ID"
-// @Success      200  {object}  ds.OperationDetails
+// @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
+// @Success      200  {object}  nil
 // @Failure      400  {object}  error
-// @Router       /api/operation/{id} [get]
+// @Router       /api/operations/{id} [get]
 func (h *Handler) GetOperationById(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 
@@ -117,13 +119,13 @@ func (h *Handler) GetOperationById(c *gin.Context) {
 	h.successHandler(c, "operation", operation)
 }
 
-// UpdateTender godoc
-// @Summary      Update Tender by admin
-// @Description  Update Tender by admin
+// UpdateOperation godoc
+// @Summary      Update Operation by admin
+// @Description  Update Operation by admin
 // @Tags         Operations
 // @Accept       json
 // @Produce      json
-// @Param        input    body    ds.Tender  true    "updated Assembly"
+// @Param        input    body    ds.Operation  true    "updated Assembly"
 // @Success      200          {object}  nil
 // @Failure      400          {object}  error
 // @Failure      500          {object}  error
@@ -168,7 +170,7 @@ func (h *Handler) UpdateOperation(ctx *gin.Context) {
 		return
 	}
 
-	h.successHandler(ctx, "updated_tender", gin.H{
+	h.successHandler(ctx, "updated_operation", gin.H{
 		"id":              updatedOperation.ID,
 		"operation_name":  updatedOperation.Name,
 		"creation_date":   operation.CreatedAt,
@@ -196,7 +198,8 @@ func (h *Handler) UpdateOperation(ctx *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        id  path  int  true  "Operation form ID"
-// @Success      200          {object}  ds.OperationDetails
+// @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
+// @Success      200          {object}  nil
 // @Failure      400          {object}  error
 // @Failure      500          {object}  error
 // @Router       /api/operations/form [put]
@@ -231,7 +234,7 @@ func (h *Handler) FormOperationRequest(c *gin.Context) {
 // @Param        input    body    ds.NewStatus  true    "update status"
 // @Success      200  {object}  map[string]any
 // @Failure      400  {object}  error
-// @Router       /operation/updateStatus [put]
+// @Router       /operations/updateStatus [put]
 func (h *Handler) UpdateStatusOperationRequest(c *gin.Context) {
 	var status ds.NewStatus
 	if err := c.BindJSON(&status); err != nil {
@@ -355,7 +358,7 @@ func (h *Handler) DeleteOperation(c *gin.Context) {
 	}
 
 	if operation.UserID != userID && userRole == ds.Buyer {
-		h.errorHandler(c, http.StatusForbidden, errors.New("you are not the creator. you can't delete a tender"))
+		h.errorHandler(c, http.StatusForbidden, errors.New("you are not the creator. you can't delete a operation"))
 		return
 	}
 
@@ -378,7 +381,7 @@ func (h *Handler) DeleteOperation(c *gin.Context) {
 // @Success      200          {object} map[string]string "update"
 // @Failure      400          {object}  error
 // @Failure      500          {object}  error
-// @Router       /api/tender-request-company [put]
+// @Router       /api/operation-request-banknote [put]
 func (h *Handler) UpdateOperationBanknote(c *gin.Context) {
 	//var operationBanknote ds.OperationBanknote
 	var OperationBanknoteU ds.OperationBanknoteUpdate

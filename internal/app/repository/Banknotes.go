@@ -6,7 +6,6 @@ import (
 	"main/internal/app/utils"
 	"strconv"
 	"strings"
-	"time"
 )
 
 func (r *Repository) GetOpenBanknotes() (*[]ds.Banknote, error) {
@@ -87,9 +86,9 @@ func (r *Repository) DeleteBanknote(id uint) error {
 		return err
 	}
 
-	if err := r.db.Model(&banknote).Update("deleted_at", time.Now()).Error; err != nil {
-		return err
-	}
+	// if err := r.db.Model(&banknote).Update("deleted_at", time.Now()).Error; err != nil {
+	// 	return err
+	// }
 
 	return nil
 }

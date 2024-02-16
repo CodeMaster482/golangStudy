@@ -1,4 +1,11 @@
 definitions:
+  ds.AddToBanknoteID:
+    properties:
+      banknote_id:
+        type: integer
+      quantity:
+        type: integer
+    type: object
   ds.Banknote:
     properties:
       banknote_id:
@@ -74,12 +81,12 @@ definitions:
         $ref: '#/definitions/ds.Banknote'
       banknote_id:
         type: integer
+      id:
+        type: integer
       operation_id:
         type: integer
       opration:
         $ref: '#/definitions/ds.Operation'
-      opration_banknote_id:
-        type: integer
       quantity:
         type: integer
     type: object
@@ -129,6 +136,29 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/banknote:
+    get:
+      consumes:
+      - application/json
+      description: Banknotes List
+      parameters:
+      - description: Query string to filter banknotes by nominal
+        in: query
+        name: banknote_name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ds.BanknoteList'
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Banknotes List
+      tags:
+      - Banknotes
   /api/banknotes:
     delete:
       consumes:
@@ -154,28 +184,6 @@ paths:
       summary: Delete banknote by ID
       tags:
       - Banknotes
-    get:
-      consumes:
-      - application/json
-      description: Banknotes List
-      parameters:
-      - description: Query string to filter banknotes by nominal
-        in: query
-        name: name
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/ds.BanknoteList'
-        "500":
-          description: Internal Server Error
-          schema: {}
-      summary: Banknotes List
-      tags:
-      - Banknotes
     post:
       consumes:
       - multipart/form-data
@@ -199,7 +207,7 @@ paths:
         in: formData
         name: currency
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -283,7 +291,118 @@ paths:
       summary: Banknotes By ID
       tags:
       - Banknotes
-  /api/operation:
+  /api/banknotes/request:
+    post:
+      consumes:
+      - application/json
+      description: Adds a banknote to a operation request
+      parameters:
+      - description: Добавление банкноты
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ds.AddToBanknoteID'
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema: {}
+      summary: Add banknote to request
+      tags:
+      - Banknotes
+  /api/operation-request-banknote:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a banknote from a request based on the user ID and banknote
+        ID
+      parameters:
+      - description: banknote ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema: {}
+      summary: Delete banknote from request
+      tags:
+      - Operation_Banknote
+    put:
+      consumes:
+      - application/json
+      description: Update money Operation Banknote by client
+      parameters:
+      - description: Update quantity Operation Banknote
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/ds.OperationBanknote'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: update
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Update money Operation Banknote
+      tags:
+      - Operation_Banknote
+  /api/operations:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a operation request for the given user ID
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema: {}
+      summary: Delete operation request by user ID
+      tags:
+      - Operations
     get:
       consumes:
       - application/json
@@ -301,6 +420,12 @@ paths:
         in: query
         name: end_date
         type: string
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -317,6 +442,90 @@ paths:
           description: Internal Server Error
           schema: {}
       summary: Get list of Operation requests
+      tags:
+      - Operations
+    put:
+      consumes:
+      - application/json
+      description: Update Operation by admin
+      parameters:
+      - description: updated Assembly
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/ds.Operation'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Update Operation by admin
+      tags:
+      - Operations
+  /api/operations/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a operation request with the given ID
+      parameters:
+      - description: Operation Request ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema: {}
+      summary: Get operation request by ID
+      tags:
+      - Operations
+  /api/operations/form:
+    put:
+      consumes:
+      - application/json
+      description: Form Banknote by client
+      parameters:
+      - description: Operation form ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Form Banknote by client
       tags:
       - Operations
   /api/user/logout:
@@ -400,32 +609,7 @@ paths:
       summary: Регистрация пользователя
       tags:
       - Пользователи
-  /banknotes/request:
-    post:
-      consumes:
-      - application/json
-      description: Adds a banknote to a operation request
-      parameters:
-      - description: Threat ID
-        in: path
-        name: threatId
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad Request
-          schema: {}
-      summary: Add banknote to request
-      tags:
-      - Banknotes
-  /operation/updateStatus:
+  /operations/updateStatus:
     put:
       consumes:
       - application/json
