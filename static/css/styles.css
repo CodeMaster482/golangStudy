@@ -10,6 +10,7 @@
     width: 300px;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
     text-align: center;
+    display: block;
 }
 
 .product-image {
@@ -78,8 +79,16 @@
 }
 
 .card-btn {
+    margin-bottom: 5px;
+    background-color: #7BA7AB;
+    color: #fff;
     border: none;
-    color: aquamarine;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+    text-decoration: none;
+    margin-top: 20px;
 }
 
 /* Основные стили для навигационной панели */
