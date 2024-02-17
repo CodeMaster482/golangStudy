@@ -14,17 +14,15 @@ func StartServer() {
 
 	router := gin.Default()
 
-	router.LoadHTMLGlob("../../templates/*")
+	router.LoadHTMLGlob("./templates/*")
 
-	router.Static("/static", "../../resources")
+	router.Static("/static", "./resources")
 
 	router.GET("/ping", handlers.PingPongHandler)
 
 	router.GET("/service", handlers.ServicesHandler)
 
 	router.GET("/service/:id", handlers.ProductPageHandler)
-
-	router.GET("/home", handlers.HomePageHandler)
 
 	router.Run()
 

@@ -16,11 +16,11 @@ type Services struct {
 }
 
 var services = []Services{
-	{Id: 0, Name: "credit", Description: "Lorem ipsum dolor sit amet, consectetur adipisicing elit", Img: "/static/credit.jpg"},
-	{Id: 1, Name: "deposite", Description: "Lorem ipsum dolor sit amet, consectetur adipisicing elit", Img: "/static/deposite.jpg"},
-	{Id: 2, Name: "transfer", Description: "Lorem ipsum dolor sit amet, consectetur adipisicing elit", Img: "/static/transfer.jpg"},
-	{Id: 3, Name: "open account", Description: "Lorem ipsum dolor sit amet, consectetur adipisicing elit", Img: "/static/accaunt.jpg"},
-	{Id: 4, Name: "exchange", Description: "Lorem ipsum dolor sit amet, consectetur adipisicing elit", Img: "/static/change.png"},
+	{Id: 0, Name: "10", Description: "Lorem ipsum dolor sit amet, consectetur adipisicing elit", Img: "/static/ten.jpg"},
+	{Id: 1, Name: "50", Description: "Lorem ipsum dolor sit amet, consectetur adipisicing elit", Img: "/static/fifty.jpg"},
+	{Id: 2, Name: "100", Description: "Lorem ipsum dolor sit amet, consectetur adipisicing elit", Img: "/static/handred.jpg"},
+	{Id: 3, Name: "500", Description: "Lorem ipsum dolor sit amet, consectetur adipisicing elit", Img: "/static/fivehandred.jpg"},
+	{Id: 4, Name: "1000", Description: "Lorem ipsum dolor sit amet, consectetur adipisicing elit", Img: "/static/thouthend.jpg"},
 }
 
 func PingPongHandler(context *gin.Context) {
@@ -32,16 +32,8 @@ func PingPongHandler(context *gin.Context) {
 	})
 }
 
-func HomePageHandler(context *gin.Context) {
-	context.HTML(http.StatusOK, "index.html", gin.H{
-		"title":     "RIP 💀 project",
-		"services":  services,
-		"styleFile": "static/styles.css",
-	})
-}
-
 func ServicesHandler(context *gin.Context) {
-	query := context.DefaultQuery("query", "")
+	query := context.DefaultQuery("banknote", "")
 	var result []Services
 
 	if query != "" {
@@ -57,7 +49,7 @@ func ServicesHandler(context *gin.Context) {
 	}
 
 	context.HTML(http.StatusOK, "index.html", gin.H{
-		"title":     "RIP 💀 project",
+		"Query":     query,
 		"services":  result,
 		"styleFile": "static/styles.css",
 	})
