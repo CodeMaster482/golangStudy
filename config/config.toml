@@ -1,0 +1,8 @@
+ServiceHost = "192.168.199.123"
+ServiceHost7 = "192.168.1.56"
+ServicePort = 8080
+
+[Redis]
+
+DialTimeout = "10s"
+ReadTimeout = "10s"
